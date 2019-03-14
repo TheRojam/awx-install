@@ -1,0 +1,84 @@
+version: '2'
+services:
+
+  web:
+    image: docker.artifactory/ansible/awx_web:latest
+    depends_on:
+      - rabbitmq
+      - memcached
+      - postgres
+    ports:
+      - "80:8052"
+    hostname: awxweb
+    user: root
+    restart: unless-stopped
+    environment:
+      http_proxy:
+      https_proxy:
+      no_proxy:
+      SECRET_KEY: awxsecret
+      DATABASE_NAME: awx
+      DATABASE_USER: awx
+      DATABASE_PASSWORD: awxpass
+      DATABASE_PORT: 5432
+      DATABASE_HOST: postgres
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_VHOST: awx
+      MEMCACHED_HOST: memcached
+      MEMCACHED_PORT: 11211
+      AWX_ADMIN_USER: admin
+      AWX_ADMIN_PASSWORD: password
+
+  task:
+    image: docker.artifactory/ansible/awx_task:latest
+    depends_on:
+      - rabbitmq
+      - memcached
+      - web
+      - postgres
+    hostname: awx
+    user: root
+    restart: unless-stopped
+    environment:
+      http_proxy:
+      https_proxy:
+      no_proxy:
+      SECRET_KEY: awxsecret
+      DATABASE_NAME: awx
+      DATABASE_USER: awx
+      DATABASE_PASSWORD: awxpass
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_VHOST: awx
+      MEMCACHED_HOST: memcached
+      MEMCACHED_PORT: 11211
+      AWX_ADMIN_USER: admin
+      AWX_ADMIN_PASSWORD: password
+
+  rabbitmq:
+    image: docker.artifactory/rabbitmq:latest
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_VHOST: awx
+
+  memcached:
+    image: docker.artifactory/memcached:alpine
+    restart: unless-stopped
+
+  postgres:
+    image: docker.artifactory/postgres:latest
+    restart: unless-stopped
+    volumes:
+      - ./data/pg:/var/lib/postgresql/data:Z
+    environment:
+      POSTGRES_USER: awx
+      POSTGRES_PASSWORD: awxpass
+      POSTGRES_DB: awx
+      PGDATA: /var/lib/postgresql/data/pgdata

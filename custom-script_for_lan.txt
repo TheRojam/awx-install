@@ -1,0 +1,25 @@
+This is basic overview of awx features. Here i created some host custom inventory script that scan local network, credentials,  template and project.
+
+link to custom inventory script:
+https://github.com/whiskerlabs/armsib...
+and packages that need to install on awx_task container
+ pip install python-nmap
+ pip install websocket
+ 
+cd /tmp
+ hg clone https://bitbucket.org/xael/python-nmap
+ cd python-nmap
+ python setup.py install
+
+ yum install nmap
+
+
+Link to ssh management playbooks on github: 
+https://github.com/KeksiLabs/ansible-... 
+and some extra knowledge about ssh management with ansbile:
+https://keksi.io/tutorials/2016/12/05...
+
+follow up videos about Ansible AWX: 
+https://www.youtube.com/watch?v=Ulrr9...
+https://www.youtube.com/watch?v=E5XtK...
+https://www.youtube.com/watch?v=7Svti...

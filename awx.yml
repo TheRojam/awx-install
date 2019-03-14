@@ -1,0 +1,51 @@
+- name: Install Docker
+
+  hosts: awx
+
+  become: yes
+  become_method: sudo
+
+  tasks:
+
+  - name: Check if awx folder exists
+    stat:
+      path: awx
+    register: awx_home
+
+  - name: Clean up docker-compose
+    command: >
+       docker-compose down
+    args:
+       chdir: awx
+    when: awx_home.stat.exists
+
+  - name: Delete docker working-dir
+    file:
+       state: absent
+       path: awx
+    when: awx_home.stat.exists
+
+  - name: Copy awx working-dir
+    synchronize:
+       src: ./awx/
+       dest: awx
+  - name: Copy certs to load 
+    synchronize:
+       src: ./awx/nginx-config/
+       dest: /usr/share/ca-certificates/
+  
+  - name: load certs for artifactory
+    shell: sudo update-ca-certificates
+
+  - name: Generate a Self Signed OpenSSL certificate
+    command: >
+       openssl req -subj '/CN=awx' -x509 -newkey rsa:4096 -nodes
+       -keyout awx.pem -out awx.pem -days 999
+    args:
+       chdir: ./awx/nginx-config/
+
+  - name: Call docker-compose to run awx-stake
+    command: >
+       docker-compose -f docker-compose.yml up -d
+    args:
+       chdir: ./awx/
