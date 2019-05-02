@@ -1,0 +1,9 @@
+# ansible-galaxy install -r requirements.yml
+# Install a role from the Ansible Galaxy
+- name: docker
+  src: https://github.com/geerlingguy/ansible-role-docker
+
+# Install a role from a specific git branch
+#- name: opendaylight
+#  src: https://github.com/dfarrell07/ansible-opendaylight
+#  version: origin/master

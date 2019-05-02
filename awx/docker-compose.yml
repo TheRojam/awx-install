@@ -2,7 +2,7 @@ version: '2'
 services:
 
   web:
-    image: docker.artifactory/ansible/awx_web:latest
+    image: ansible/awx_web:latest
     depends_on:
       - rabbitmq
       - memcached
@@ -33,7 +33,7 @@ services:
       AWX_ADMIN_PASSWORD: password
 
   task:
-    image: docker.artifactory/ansible/awx_task:latest
+    image: ansible/awx_task:latest
     depends_on:
       - rabbitmq
       - memcached
@@ -63,17 +63,17 @@ services:
       AWX_ADMIN_PASSWORD: password
 
   rabbitmq:
-    image: docker.artifactory/rabbitmq:latest
+    image: rabbitmq:latest
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_VHOST: awx
 
   memcached:
-    image: docker.artifactory/memcached:alpine
+    image: memcached:alpine
     restart: unless-stopped
 
   postgres:
-    image: docker.artifactory/postgres:latest
+    image: postgres:latest
     restart: unless-stopped
     volumes:
       - ./data/pg:/var/lib/postgresql/data:Z

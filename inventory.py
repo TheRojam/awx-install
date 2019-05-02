@@ -37,7 +37,7 @@ class ExampleInventory(object):
                 'hosts': ['192.168.1.101', '192.168.1.102'],
                 'vars': {
                     'ansible_ssh_user': 'pi',
-                    'ansible_ssh_pass': 'G0ldenball$',
+                    'ansible_ssh_pass': '',
                     'example_variable': 'value'
                 }
             },

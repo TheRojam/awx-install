@@ -1,45 +1,45 @@
 ENV['VAGRANT_DEFAULT_PROVIDER'] = 'virtualbox'
-Vagrant.configure("2") do |config|
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
 
-    config.vm.define "awx" do |web|
+VAGRANTFILE_API_VERSION = "2"
 
-        # Resources for this machine
-        web.vm.provider "virtualbox" do |vb|
-           vb.memory = "2048"
-           vb.cpus = "1"
-        end
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.ssh.forward_agent = true
+  config.vm.box = "bento/ubuntu-18.04"
+  config.ssh.insert_key = false
 
-        web.vm.box = "bento/ubuntu-18.04"
+  config.vm.provider :virtualbox do |v|
+    v.memory = 4096
+    v.cpus = 2
+    v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    v.customize ["modifyvm", :id, "--ioapic", "on"]
+  end
 
-        web.vm.hostname = "awx"
+  # AWX VM.
+  config.vm.define "awx" do |awx|
+    awx.vm.hostname = "awx.local"
+    awx.vm.network :private_network, ip: "192.168.6.65"
+    # Disable vagrant ssh and log into machine by ssh
+    awx.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
 
-        # Define public network. If not present, Vagrant will ask.
-        web.vm.network "public_network", bridge: "Intel(R) Dual Band Wireless-AC 7260"
-
-        # Disable vagrant ssh and log into machine by ssh
-        web.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
-
-        # Install Python to be able to provision machine using Ansible
-        web.vm.provision "shell", inline: "which python || sudo apt -y install python"
-
-        # Add artifactory address as not using dns
-        web.vm.provision "shell", inline: "sudo echo 192.168.1.6 artifactory docker.artifactory docker-remote.artifactory docker-local.artifactory | sudo tee -a /etc/hosts"
-        
-        # copy key for artifactory
-        config.vm.provision "file", source: "./awx/nginx-config/artifactory.key", destination: "~/artifactory.key"
-
-        # copy certs for artifactory
-        config.vm.provision "file", source: "./awx/nginx-config/artifactory.crt", destination: "~/artifactory.crt"
-
-        # Add artifactory certs for docker
-        web.vm.provision "shell", inline: "sudo mv /home/vagrant/artifactory.key /usr/local/share/ca-certificates/artifactory.key"
-
-        # Add artifactory certs for docker
-        web.vm.provision "shell", inline: "sudo mv /home/vagrant/artifactory.crt /usr/local/share/ca-certificates/artifactory.crt"
-
-        # Add artifactory certificates
-        web.vm.provision "shell", inline: "sudo update-ca-certificates"
-
+    # Install Python to be able to provision machine using Ansible
+    awx.vm.provision "shell", inline: "which python || sudo apt -y install python"
+    
+    awx.vm.provision :ansible do |ansible|
+      ansible.compatibility_mode = "2.0"
+      ansible.playbook = "provisioning/docker.yml"
+      ansible.inventory_path = "provisioning/inventory"
+      ansible.become = true
     end
+   # Second playbook
+    awx.vm.provision :ansible do |ansible|
+      ansible.compatibility_mode = "2.0"
+      ansible.playbook = "provisioning/awx.yml"
+      ansible.inventory_path = "provisioning/inventory"
+      ansible.become = true
+    end
+    awx.vm.provision "shell", inline: "docker restart $(docker ps -qa)"
+  end
 
 end
