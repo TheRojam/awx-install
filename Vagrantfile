@@ -21,7 +21,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     awx.vm.hostname = "awx.local"
     awx.vm.network :private_network, ip: "192.168.6.65"
     # Disable vagrant ssh and log into machine by ssh
-    awx.vm.provision "file", source: "~/.ssh/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+    awx.vm.provision "file", source: "~/.ssh/id_testserver.pub", destination: "~/.ssh/authorized_keys"
 
     # Install Python to be able to provision machine using Ansible
     awx.vm.provision "shell", inline: "which python || sudo apt -y install python"
